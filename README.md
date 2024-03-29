@@ -3,7 +3,7 @@ Heavily inspired by [generational-box](https://crates.io/crates/generational-box
 
 ## Examples
 ```rust
-let span = genalloc::Span::new();
+let mut span = genalloc::Span::new();
 let ptr: genalloc::Ptr<u32> = span.alloc(5); // No lifetimes! `Ptr` is `Copy`!
 assert_eq!(*ptr.read(), 5);
 ```
