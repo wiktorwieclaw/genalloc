@@ -19,7 +19,7 @@ impl Span {
     ///
     /// Then the [`Span`] gets dropped it recycles it's generational allocations so that they
     /// can be reused by other spans.
-    /// 
+    ///
     /// The returned [`Ptr<T>`] is [`Copy`] even if the underlying `T` is not [`Copy`].
     /// This pointer gets invalidated whenever it's [`Span`] is dropped.
     #[must_use]
@@ -51,14 +51,21 @@ impl Drop for Span {
 }
 
 /// Generational pointer.
-/// 
+///
 /// [`Ptr<T>`] is [`Copy`] even if the underlying `T` is not [`Copy`].
-#[derive(Clone, Copy)]
 pub struct Ptr<T> {
     alloc: Alloc,
     gen: u32,
     _marker: PhantomData<T>,
 }
+
+impl<T> Clone for Ptr<T> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<T> Copy for Ptr<T> {}
 
 impl<T> Ptr<T> {
     pub fn read(&self) -> Ref<'static, T> {
@@ -94,4 +101,12 @@ thread_local! {
     static RECYCLED_ALLOCS: RefCell<Vec<Alloc>> = const {
         RefCell::new(Vec::new())
     };
+}
+
+#[test]
+fn ptr_is_copy() {
+    let mut span = Span::new();
+    let ptr_1 = span.alloc("test".to_string());
+    let ptr_2 = ptr_1;
+    assert_eq!(*ptr_1.read(), *ptr_2.read());
 }
